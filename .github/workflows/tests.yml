@@ -15,7 +15,8 @@ jobs:
       matrix:
         php: ["8.3", "8.2", "8.1"]
         laravel: ["11", "10"]
-        redis: ["7.0", "6.0"]
+        redis: ["7", "6"]
+        ext: ["6.0.2", "5.3.7"]
         stability: [ prefer-lowest, prefer-stable ]
         exclude:
           - php: 8.1
@@ -28,7 +29,7 @@ jobs:
           - 6379:6379
         options: --entrypoint redis-server
 
-    name: PHP ${{ matrix.php }} Laravel ${{ matrix.laravel }} - ${{ matrix.stability }} with Redis ${{ matrix.redis }}
+    name: PHP ${{ matrix.php }} Laravel ${{ matrix.laravel }} - ${{ matrix.stability }} with Ext ${{ matrix.ext }} - Redis ${{ matrix.redis }}
 
     steps:
       - name: Checkout code
@@ -38,10 +39,9 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: redis
+          extensions: redis-${{ matrix.ext }}
           tools: composer:v2
           ini-values: error_reporting=E_ALL
-          coverage: xdebug
 
       - name: Set Laravel version
         uses: nick-fields/retry@v3
@@ -49,6 +49,17 @@ jobs:
           timeout_minutes: 5
           max_attempts: 5
           command: composer require illuminate/redis:^${{ matrix.laravel }} --dev --no-interaction --no-update
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ matrix.php }}-${{ matrix.laravel }}-${{ matrix.stability }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install dependencies
         uses: nick-fields/retry@v3
@@ -62,6 +73,3 @@ jobs:
 
       - name: Execute tests
         run: php vendor/bin/phpunit
-
-      - name: Code coverage
-        uses: codecov/codecov-action@v4
