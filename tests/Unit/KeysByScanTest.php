@@ -71,7 +71,7 @@ class KeysByScanTest extends TestCase
             'foo:2',
             'foo:3',
             'foo:4',
-        ], (new KeysByScan($this->connection))('foo:*'));
+        ], (new KeysByScan($this->connection))('foo:*', 1));
     }
 
     #[Test]
@@ -82,7 +82,7 @@ class KeysByScanTest extends TestCase
             'bar:6',
             'bar:foo:7',
             'bar:foo:8',
-        ], (new KeysByScan($this->connection))('bar:*'));
+        ], (new KeysByScan($this->connection))('bar:*', 1));
     }
 
     #[Test]
@@ -91,6 +91,6 @@ class KeysByScanTest extends TestCase
         $this->assertSame([
             'bar:foo:7',
             'bar:foo:8',
-        ], (new KeysByScan($this->connection))('bar:foo:*'));
+        ], (new KeysByScan($this->connection))('bar:foo:*', 1));
     }
 }
