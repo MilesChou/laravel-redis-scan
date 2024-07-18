@@ -14,16 +14,24 @@ class KeysByScan
     {
     }
 
-    public function __invoke(string $pattern): array
+    public function __invoke(string $pattern, ?int $count = null): array
     {
         $prefix = $this->redis->client()->getOption(Redis::OPT_PREFIX);
         $cursor = $defaultCursorValue = '0';
         $keys = [];
 
         do {
+            $options = [
+                'match' => $prefix . $pattern,
+            ];
+
+            if ($count !== null) {
+                $options['count'] = $count;
+            }
+
             [$cursor, $tagsChunk] = $this->redis->scan(
                 $cursor,
-                ['match' => $prefix . $pattern],
+                $options,
             );
 
             if (!is_array($tagsChunk)) {

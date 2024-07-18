@@ -30,3 +30,7 @@ test: clean check
 coverage: test
 	php ${GLOBAL_CONFIG} -d xdebug.mode=coverage vendor/bin/phpunit
 	@if [ "`uname`" = "Darwin" ]; then open build/coverage/index.html; fi
+
+.PHONY: bench
+bench:
+	php vendor/bin/phpbench run --report=overview benchmarks
